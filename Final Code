@@ -1,0 +1,102 @@
+import PIL  
+import os.path  
+import PIL.ImageDraw  
+# get_images code adapted from source code provided by PLTW.
+def get_images(directory=None):
+    if directory == None:
+        directory = os.getcwd() # Use working directory if unspecified
+        
+    image_list = [] # Initialize aggregaotrs
+    file_list = []
+    
+    directory_list = os.listdir(directory) # Get list of files
+    for entry in directory_list:
+        absolute_filename = os.path.join(directory, entry)
+        try:
+            image = PIL.Image.open(absolute_filename)
+            file_list += [entry]
+            image_list += [image]
+        except IOError:
+            pass # do nothing with errors tying to open non-images
+    return image_list, file_list
+    
+    
+def tint_image(image, r,g,b):
+    ''' Tints an image where..
+    
+        image = Image to tint.
+        r = Red color value of tint.
+        g = Green color value of tint.
+        b = Blue color value of tint.
+        
+        *************************************
+        * Only works with tint_all_images,  *
+        * NOT standalone.                   *
+        *************************************
+        '''
+    result = PIL.Image.new('RGBA', image.size, (r,g,b,105))
+    image.paste(result,(0,0),result)
+    print ('Tinting Image...')
+    print ('Image',image,'has been tinted.')
+    return image
+    
+def tint_all_images(directory=None):
+    ''' Tints all images in working directory,
+        stores them in a folder called  "Tinted Images" '''
+    directory = os.getcwd()
+    new_directory = os.path.join(directory, "Tinted Images")
+    try:
+        os.mkdir(new_directory)
+    except:
+        pass
+    images, files = get_images(directory)
+    print ('Enter RED value for tint(0-255)')
+    r=int(input())
+    print ('Enter GREEN value for tint(0-255)')
+    g=int(input())
+    print ('Enter BLUE vlaue for tint(0-255)')
+    b=int(input())
+    for n in range(len(images)):
+        fname,ftype = files[n].split('.')
+        new_image = tint_image(images[n], r,g,b)
+        new_name = os.path.join(new_directory,fname + ".png")
+        new_image.save(new_name)
+    print ('Success! All images have been tinted!')
+    
+    
+# Function to change the image size
+def changeImageSize(maxWidth, 
+                    maxHeight, 
+                    image):
+    
+    widthRatio  = maxWidth/image.size[0]
+    heightRatio = maxHeight/image.size[1]
+
+    newWidth    = int(widthRatio*image.size[0])
+    newHeight   = int(heightRatio*image.size[1])
+
+    newImage    = image.resize((newWidth, newHeight))
+    return newImage
+    
+# Take two images for blending them together  
+print ('What image do you want to add the logo to?')
+image1 = PIL.Image.open(input())
+image2 = PIL.Image.open("./logo.png")
+
+# Changes image sizes
+image3 = changeImageSize(800, 500, image1)
+image4 = changeImageSize(75, 75, image2)
+
+# Make sure images have an alpha channel
+image5 = image3.convert("RGBA")
+image6 = image4.convert("RGBA")
+
+#Copys and pastes the images
+copyimage1=image5.copy()
+copyimage2=image6.copy()
+copyimage1.paste(copyimage2, (10,10))
+# saves the images under a different name
+copyimage1.save('image_with_logo.png')
+#tells you that it worked
+print('Success! Your logo has been added to the image')
+
